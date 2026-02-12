@@ -261,3 +261,22 @@ And 브라우저 개발자 도구에서 API 키를 확인할 수 없다
 | 접근성 | WCAG 색상 대비 체크 도구 |
 | 보안 | 브라우저 개발자 도구 네트워크 탭 검증 |
 | API 통합 | 다양한 고기 사진으로 실제 분석 테스트 |
+
+---
+
+## 8. 구현 상태 요약
+
+### Primary 인수 기준 달성 현황
+- AC-001 (사진 입력): 구현 완료 - ImageUploader 컴포넌트
+- AC-002 (고기 종류/부위 선택): 구현 완료 - MeatTypeSelector, CutSelector
+- AC-003 (AI 분석): 구현 완료 - POST /api/analyze, Claude Vision API
+- AC-004 (결과 표시): 구현 완료 - ScoreCard, DetailAnalysis, WarningBanner, CutComparison
+- AC-005 (분석 이력): 미구현 - Optional Goal
+
+### 비기능 인수 기준
+- NFR-001 (성능): 이미지 리사이즈 구현, maxDuration 60초 설정
+- NFR-002 (반응형): 모바일 우선 구현 (max-w-lg 기반)
+- NFR-003 (접근성): 한국어 기본 (html lang="ko")
+- NFR-004 (보안): 서버사이드 API 키 관리, Zod 입력 검증
+
+Note: 검증은 수동 테스트 기반으로 진행 필요 (자동 테스트 미작성)

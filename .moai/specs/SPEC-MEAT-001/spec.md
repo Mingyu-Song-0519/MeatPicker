@@ -5,7 +5,7 @@
 **SPEC ID:** SPEC-MEAT-001
 **Title:** MeatPicker - Meat Quality Analysis Website
 **Created:** 2026-02-13
-**Status:** Planned
+**Status:** Completed
 **Priority:** High
 **Lifecycle:** spec-first
 
@@ -319,3 +319,37 @@ interface AnalysisResult {
 ## 7. 면책 조항
 
 본 서비스는 AI 기반 시각 분석을 통해 고기 품질에 대한 참고 정보를 제공합니다. 분석 결과는 전문적인 식품 안전 검사를 대체할 수 없으며, 최종 구매 판단은 사용자의 책임입니다. 냄새, 탄력, 내부 결함 등 사진으로 확인할 수 없는 요소가 있으므로, 분석 결과의 정확도는 약 70-80% 수준입니다.
+
+---
+
+## 8. Implementation Notes (구현 노트)
+
+### 구현 완료 항목
+- Primary Goal (핵심 분석 기능): 모든 항목 구현 완료
+  - Next.js 프로젝트 초기 설정 (Next.js 16.1.6, TypeScript, Tailwind CSS 4)
+  - 데이터 모델 및 상수 정의 (meat.ts, api.ts, constants.ts, schemas.ts)
+  - 이미지 입력 컴포넌트 (ImageUploader - 파일 업로드 + 카메라 촬영 + 리사이즈)
+  - 고기 종류/부위 선택 (MeatTypeSelector, CutSelector)
+  - Vision AI 통합 API Route (POST /api/analyze, Claude Vision API 사용)
+  - 분석 결과 화면 (ScoreCard, DetailAnalysis, WarningBanner, CutComparison)
+  - 면책 조항 및 분석 한계 안내
+
+### 구현 방식 변경사항
+- 단일 페이지 플로우 채택: 별도의 /result 라우트 대신 메인 페이지에서 결과를 표시하는 SPA 방식으로 구현 (더 나은 UX)
+- Zustand 미사용: React 내장 useState로 충분하여 외부 상태 관리 라이브러리 불필요
+- Vision AI: Claude Vision API(@anthropic-ai/sdk) 확정 사용
+
+### 기술 스택 변경
+| 계획 | 실제 | 사유 |
+|------|------|------|
+| Next.js 15.x | Next.js 16.1.6 | 최신 안정 버전 사용 |
+| Zod 3.x | Zod 4.3.6 | 최신 안정 버전 사용 |
+| React (암묵적 18.x) | React 19.2.3 | Next.js 16 호환 |
+
+### 미구현 항목 (선택/부가 기능)
+- 분석 이력 페이지 (/history) - Optional Goal
+- LoadingIndicator 별도 컴포넌트 - 인라인 로딩 상태로 대체
+- Zustand 상태 관리 스토어 - React 내장 상태로 충분
+
+### 구현 일자
+2026-02-13
