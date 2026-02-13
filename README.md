@@ -78,8 +78,15 @@ npx wrangler secret put GEMINI_MAX_OUTPUT_TOKENS
 ### 3) Git 연동(Cloudflare Dashboard)로 배포
 
 - 프로젝트 유형: **Workers**
-- 저장소 연결 후 빌드 커맨드: `npm run upload`
-- `wrangler.jsonc`를 기준으로 Worker 엔트리(`.open-next/worker.js`)와 assets(`.open-next/assets`)가 자동 업로드됩니다.
+- 저장소 연결 후 **Build command**: `npm run build:worker`
+- Root directory: 프로젝트 루트(`/`)
+- Node.js 버전: 20 이상
+- `wrangler.jsonc`를 기준으로 Worker 엔트리(`.open-next/worker.js`)와 assets(`.open-next/assets`)가 사용됩니다.
+
+중요:
+
+- Build command를 `npm run build`(Next 기본 빌드)로 두면 `.open-next/worker.js`가 생성되지 않아  
+  `The entry-point file at ".open-next/worker.js" was not found` 에러가 발생합니다.
 
 ## 품질 검증 명령
 
