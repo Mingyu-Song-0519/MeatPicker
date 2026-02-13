@@ -16,6 +16,7 @@
 - TypeScript
 - Tailwind CSS
 - Gemini API (Google Generative Language)
+- OpenNext + Cloudflare Workers
 - Zod
 - Vitest
 
@@ -48,6 +49,37 @@ npm run dev
 ```
 
 브라우저에서 `http://localhost:3000` 접속.
+
+## Cloudflare Workers 배포
+
+프로젝트는 OpenNext 어댑터를 사용해 Cloudflare Workers로 배포합니다.
+
+### 1) 로컬 프리뷰 (Workers 런타임)
+
+```bash
+npm run preview
+```
+
+### 2) CLI로 배포
+
+```bash
+npx wrangler login
+npx wrangler secret put GEMINI_API_KEY
+npm run deploy
+```
+
+선택값:
+
+```bash
+npx wrangler secret put GEMINI_MODEL
+npx wrangler secret put GEMINI_MAX_OUTPUT_TOKENS
+```
+
+### 3) Git 연동(Cloudflare Dashboard)로 배포
+
+- 프로젝트 유형: **Workers**
+- 저장소 연결 후 빌드 커맨드: `npm run upload`
+- `wrangler.jsonc`를 기준으로 Worker 엔트리(`.open-next/worker.js`)와 assets(`.open-next/assets`)가 자동 업로드됩니다.
 
 ## 품질 검증 명령
 
