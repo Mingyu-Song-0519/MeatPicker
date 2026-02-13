@@ -1,55 +1,52 @@
-# MeatPicker - AI 고기 품질 분석 웹사이트
+﻿# MeatPicker - AI 怨좉린 ?덉쭏 遺꾩꽍 ?뱀궗?댄듃
 
-AI Vision 기술을 활용하여 소고기와 돼지고기의 품질을 분석하는 웹 애플리케이션입니다. 사용자가 고기 사진을 촬영하거나 업로드하면, AI가 색상, 마블링, 표면 상태, 형태 균일성 등을 종합적으로 분석하여 품질 등급과 상세 점수를 제공합니다.
+AI Vision 湲곗닠???쒖슜?섏뿬 ?뚭퀬湲곗? ?쇱?怨좉린???덉쭏??遺꾩꽍?섎뒗 ???좏뵆由ъ??댁뀡?낅땲?? ?ъ슜?먭? 怨좉린 ?ъ쭊??珥ъ쁺?섍굅???낅줈?쒗븯硫? AI媛 ?됱긽, 留덈툝留? ?쒕㈃ ?곹깭, ?뺥깭 洹좎씪???깆쓣 醫낇빀?곸쑝濡?遺꾩꽍?섏뿬 ?덉쭏 ?깃툒怨??곸꽭 ?먯닔瑜??쒓났?⑸땲??
 
 ---
 
-## 주요 기능
+## 二쇱슂 湲곕뒫
 
-- **사진 입력**: 갤러리에서 업로드 또는 카메라로 직접 촬영
-- **고기 종류 선택**: 소고기(6개 부위) 또는 돼지고기(5개 부위) 선택
-- **AI 품질 분석**: Vision AI가 색상, 마블링, 표면 상태, 형태/균일성을 분석
-- **분석 결과 제공**: 종합 등급(좋음/보통/나쁨), 종합 점수(0-100), 부위별 상세 점수, 경고 사항
-- **모바일 최적화**: 모바일 우선 반응형 디자인
-- **보안**: 서버 사이드 API 키 관리
-- **이미지 최적화**: 업로드 전 이미지 리사이즈/압축 (최대 1MB)
+- **?ъ쭊 ?낅젰**: 媛ㅻ윭由ъ뿉???낅줈???먮뒗 移대찓?쇰줈 吏곸젒 珥ъ쁺
+- **怨좉린 醫낅쪟 ?좏깮**: ?뚭퀬湲?6媛?遺?? ?먮뒗 ?쇱?怨좉린(5媛?遺?? ?좏깮
+- **AI ?덉쭏 遺꾩꽍**: Vision AI媛 ?됱긽, 留덈툝留? ?쒕㈃ ?곹깭, ?뺥깭/洹좎씪?깆쓣 遺꾩꽍
+- **遺꾩꽍 寃곌낵 ?쒓났**: 醫낇빀 ?깃툒(醫뗭쓬/蹂댄넻/?섏겏), 醫낇빀 ?먯닔(0-100), 遺?꾨퀎 ?곸꽭 ?먯닔, 寃쎄퀬 ?ы빆
+- **紐⑤컮??理쒖쟻??*: 紐⑤컮???곗꽑 諛섏쓳???붿옄??- **蹂댁븞**: ?쒕쾭 ?ъ씠??API ??愿由?- **?대?吏 理쒖쟻??*: ?낅줈?????대?吏 由ъ궗?댁쫰/?뺤텞 (理쒕? 1MB)
 
-### 지원 부위
-
-| 소고기 | 돼지고기 |
+### 吏??遺??
+| ?뚭퀬湲?| ?쇱?怨좉린 |
 |--------|----------|
-| 안심 | 삼겹살 |
-| 등심 | 목살 |
-| 채끝 | 항정살 |
-| 갈비 | 등심 |
-| 사태 | 앞다리 |
-| 우둔 | |
+| ?덉떖 | ?쇨껸??|
+| ?깆떖 | 紐⑹궡 |
+| 梨꾨걹 | ??젙??|
+| 媛덈퉬 | ?깆떖 |
+| ?ы깭 | ?욌떎由?|
+| ?곕몦 | |
 
 ---
 
-## 기술 스택
+## 湲곗닠 ?ㅽ깮
 
-| 분류 | 기술 |
+| 遺꾨쪟 | 湲곗닠 |
 |------|------|
-| 프레임워크 | Next.js 16.1.6 (App Router) |
-| 언어 | TypeScript 5.x |
-| UI 라이브러리 | React 19.2.3 |
-| 스타일링 | Tailwind CSS 4.x |
-| AI | @anthropic-ai/sdk (Claude Vision API) |
-| 유효성 검증 | Zod 4.3.6 |
-| 배포 | Vercel |
+| ?꾨젅?꾩썙??| Next.js 16.1.6 (App Router) |
+| ?몄뼱 | TypeScript 5.x |
+| UI ?쇱씠釉뚮윭由?| React 19.2.3 |
+| ?ㅽ??쇰쭅 | Tailwind CSS 4.x |
+| AI | Gemini API (Google Generative Language) |
+| ?좏슚??寃利?| Zod 4.3.6 |
+| 諛고룷 | Vercel |
 
 ---
 
-## 시작하기
+## ?쒖옉?섍린
 
-### 사전 요구사항
+### ?ъ쟾 ?붽뎄?ы빆
 
-- Node.js 20 이상
-- npm 또는 yarn
-- Anthropic API 키 ([console.anthropic.com](https://console.anthropic.com)에서 발급)
+- Node.js 20 ?댁긽
+- npm ?먮뒗 yarn
+- Gemini API ??([console.Gemini.com](https://console.Gemini.com)?먯꽌 諛쒓툒)
 
-### 설치
+### ?ㅼ튂
 
 ```bash
 git clone https://github.com/your-username/MeatPicker.git
@@ -57,25 +54,25 @@ cd MeatPicker
 npm install
 ```
 
-### 환경 변수 설정
+### ?섍꼍 蹂???ㅼ젙
 
-프로젝트 루트에 `.env.local` 파일을 생성하고 다음 내용을 추가합니다.
+?꾨줈?앺듃 猷⑦듃??`.env.local` ?뚯씪???앹꽦?섍퀬 ?ㅼ쓬 ?댁슜??異붽??⑸땲??
 
 ```
-ANTHROPIC_API_KEY=your_api_key_here
+GEMINI_API_KEY=your_api_key_here
 ```
 
-`ANTHROPIC_API_KEY`는 서버 사이드에서만 사용되며 클라이언트에 노출되지 않습니다.
+`GEMINI_API_KEY`???쒕쾭 ?ъ씠?쒖뿉?쒕쭔 ?ъ슜?섎ŉ ?대씪?댁뼵?몄뿉 ?몄텧?섏? ?딆뒿?덈떎.
 
-### 개발 서버 실행
+### 媛쒕컻 ?쒕쾭 ?ㅽ뻾
 
 ```bash
 npm run dev
 ```
 
-브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 확인합니다.
+釉뚮씪?곗??먯꽌 [http://localhost:3000](http://localhost:3000)???댁뼱 ?뺤씤?⑸땲??
 
-### 빌드 및 배포
+### 鍮뚮뱶 諛?諛고룷
 
 ```bash
 npm run build
@@ -84,35 +81,29 @@ npm run start
 
 ---
 
-## 프로젝트 구조
+## ?꾨줈?앺듃 援ъ“
 
 ```
 src/
   app/
-    layout.tsx            - 루트 레이아웃 (한국어, Geist 폰트)
-    page.tsx              - 메인 페이지 (업로드 -> 선택 -> 분석 -> 결과)
-    globals.css           - 전역 스타일
-    api/
-      analyze/route.ts    - POST /api/analyze 엔드포인트
-  components/
-    ImageUploader.tsx     - 이미지 업로드 및 카메라 촬영
-    MeatTypeSelector.tsx  - 소고기/돼지고기 선택
-    CutSelector.tsx       - 부위 선택
-    AnalyzeButton.tsx     - 분석 실행 버튼
-    ScoreCard.tsx         - 종합 등급 및 점수 표시
-    DetailAnalysis.tsx    - 상세 점수 분석
-    WarningBanner.tsx     - 경고 배너
-    CutComparison.tsx     - 좋은/나쁜 고기 비교 참고
+    layout.tsx            - 猷⑦듃 ?덉씠?꾩썐 (?쒓뎅?? Geist ?고듃)
+    page.tsx              - 硫붿씤 ?섏씠吏 (?낅줈??-> ?좏깮 -> 遺꾩꽍 -> 寃곌낵)
+    globals.css           - ?꾩뿭 ?ㅽ???    api/
+      analyze/route.ts    - POST /api/analyze ?붾뱶?ъ씤??  components/
+    ImageUploader.tsx     - ?대?吏 ?낅줈??諛?移대찓??珥ъ쁺
+    MeatTypeSelector.tsx  - ?뚭퀬湲??쇱?怨좉린 ?좏깮
+    CutSelector.tsx       - 遺???좏깮
+    AnalyzeButton.tsx     - 遺꾩꽍 ?ㅽ뻾 踰꾪듉
+    ScoreCard.tsx         - 醫낇빀 ?깃툒 諛??먯닔 ?쒖떆
+    DetailAnalysis.tsx    - ?곸꽭 ?먯닔 遺꾩꽍
+    WarningBanner.tsx     - 寃쎄퀬 諛곕꼫
+    CutComparison.tsx     - 醫뗭?/?섏걶 怨좉린 鍮꾧탳 李멸퀬
   lib/
-    vision-ai.ts          - Claude Vision API 클라이언트
-    image-utils.ts        - 이미지 리사이즈/압축 유틸리티
-    prompts.ts            - AI 프롬프트 템플릿
-    constants.ts          - 부위 데이터 및 분석 기준
-    schemas.ts            - Zod 유효성 검증 스키마
-  types/
-    meat.ts               - 핵심 타입 정의
-    api.ts                - API 요청/응답 타입
-```
+    vision-ai.ts          - Gemini Vision API ?대씪?댁뼵??    image-utils.ts        - ?대?吏 由ъ궗?댁쫰/?뺤텞 ?좏떥由ы떚
+    prompts.ts            - AI ?꾨＼?꾪듃 ?쒗뵆由?    constants.ts          - 遺???곗씠??諛?遺꾩꽍 湲곗?
+    schemas.ts            - Zod ?좏슚??寃利??ㅽ궎留?  types/
+    meat.ts               - ?듭떖 ????뺤쓽
+    api.ts                - API ?붿껌/?묐떟 ???```
 
 ---
 
@@ -120,19 +111,19 @@ src/
 
 ### POST /api/analyze
 
-고기 이미지를 분석하여 품질 결과를 반환합니다.
+怨좉린 ?대?吏瑜?遺꾩꽍?섏뿬 ?덉쭏 寃곌낵瑜?諛섑솚?⑸땲??
 
-**요청 본문**
+**?붿껌 蹂몃Ц**
 
 ```json
 {
-  "image": "base64 인코딩된 이미지",
+  "image": "base64 ?몄퐫?⑸맂 ?대?吏",
   "meatType": "beef" | "pork",
-  "cut": "부위명"
+  "cut": "遺?꾨챸"
 }
 ```
 
-**응답**
+**?묐떟**
 
 ```json
 {
@@ -144,21 +135,23 @@ src/
     "surface": { "score": 85, "description": "..." },
     "shape": { "score": 88, "description": "..." }
   },
-  "warnings": ["경고 메시지"],
-  "goodTraits": ["긍정적 특성"],
-  "limitations": ["분석 한계 사항"],
+  "warnings": ["寃쎄퀬 硫붿떆吏"],
+  "goodTraits": ["湲띿젙???뱀꽦"],
+  "limitations": ["遺꾩꽍 ?쒓퀎 ?ы빆"],
   "cutReference": { "good": "...", "bad": "..." }
 }
 ```
 
 ---
 
-## 면책 조항
+## 硫댁콉 議고빆
 
-이 서비스의 AI 분석 결과는 참고 용도로만 제공됩니다. 실제 고기 품질은 사진만으로 완벽하게 판단할 수 없으며, 조명, 카메라 품질, 촬영 각도 등 외부 요인에 의해 분석 결과가 달라질 수 있습니다. 최종 구매 결정은 전문가의 의견이나 직접적인 확인을 통해 내려주시기 바랍니다.
+???쒕퉬?ㅼ쓽 AI 遺꾩꽍 寃곌낵??李멸퀬 ?⑸룄濡쒕쭔 ?쒓났?⑸땲?? ?ㅼ젣 怨좉린 ?덉쭏? ?ъ쭊留뚯쑝濡??꾨꼍?섍쾶 ?먮떒?????놁쑝硫? 議곕챸, 移대찓???덉쭏, 珥ъ쁺 媛곷룄 ???몃? ?붿씤???섑빐 遺꾩꽍 寃곌낵媛 ?щ씪吏????덉뒿?덈떎. 理쒖쥌 援щℓ 寃곗젙? ?꾨Ц媛???섍껄?대굹 吏곸젒?곸씤 ?뺤씤???듯빐 ?대젮二쇱떆湲?諛붾엻?덈떎.
 
 ---
 
-## 라이선스
+## ?쇱씠?좎뒪
 
 MIT License
+
+

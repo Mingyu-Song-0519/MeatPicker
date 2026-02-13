@@ -1,14 +1,11 @@
-'use client';
+﻿'use client';
 
-// 이미지 업로드/촬영 컴포넌트
-
+import Image from 'next/image';
 import { useRef, useState, useCallback } from 'react';
 import { validateImageFile, resizeImage } from '@/lib/image-utils';
 
 interface ImageUploaderProps {
-  /** 이미지가 선택/제거되었을 때 호출 (base64 data URI 또는 null) */
   onImageChange: (image: string | null) => void;
-  /** 현재 선택된 이미지 (미리보기용) */
   currentImage: string | null;
 }
 
@@ -25,7 +22,6 @@ export default function ImageUploader({
     async (file: File) => {
       setError(null);
 
-      // 유효성 검증
       const validation = validateImageFile(file);
       if (!validation.valid) {
         setError(validation.error ?? '유효하지 않은 파일입니다.');
@@ -55,7 +51,6 @@ export default function ImageUploader({
       if (file) {
         handleFileSelect(file);
       }
-      // input 값 초기화 (같은 파일 재선택 가능하도록)
       e.target.value = '';
     },
     [handleFileSelect]
@@ -68,14 +63,17 @@ export default function ImageUploader({
 
   return (
     <div className="w-full">
-      {/* 이미지 미리보기 */}
       {currentImage ? (
         <div className="relative mb-4">
-          <img
-            src={currentImage}
-            alt="선택한 고기 이미지"
-            className="w-full max-h-80 object-contain rounded-lg border border-gray-200"
-          />
+          <div className="relative w-full h-80 rounded-lg border border-gray-200 overflow-hidden">
+            <Image
+              src={currentImage}
+              alt="선택한 고기 이미지"
+              fill
+              unoptimized
+              className="object-contain"
+            />
+          </div>
           <button
             type="button"
             onClick={handleRemove}
@@ -86,9 +84,7 @@ export default function ImageUploader({
           </button>
         </div>
       ) : (
-        /* 업로드 영역 */
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          {/* 파일 업로드 버튼 */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -109,11 +105,10 @@ export default function ImageUploader({
               />
             </svg>
             <span className="text-sm text-gray-600">
-              {isProcessing ? '처리 중...' : '사진 선택'}
+              {isProcessing ? '처리 중..' : '사진 선택'}
             </span>
           </button>
 
-          {/* 카메라 촬영 버튼 */}
           <button
             type="button"
             onClick={() => cameraInputRef.current?.click()}
@@ -140,13 +135,12 @@ export default function ImageUploader({
               />
             </svg>
             <span className="text-sm text-gray-600">
-              {isProcessing ? '처리 중...' : '카메라 촬영'}
+              {isProcessing ? '처리 중..' : '카메라 촬영'}
             </span>
           </button>
         </div>
       )}
 
-      {/* 숨김 파일 입력 */}
       <input
         ref={fileInputRef}
         type="file"
@@ -156,7 +150,6 @@ export default function ImageUploader({
         aria-label="이미지 파일 선택"
       />
 
-      {/* 숨김 카메라 입력 */}
       <input
         ref={cameraInputRef}
         type="file"
@@ -167,7 +160,6 @@ export default function ImageUploader({
         aria-label="카메라로 촬영"
       />
 
-      {/* 에러 메시지 */}
       {error && (
         <p className="text-sm text-red-500 mt-2" role="alert">
           {error}

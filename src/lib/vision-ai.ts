@@ -1,67 +1,448 @@
-// Vision AI 분석 모듈 - Anthropic Claude API를 통한 고기 품질 분석
-
-import Anthropic from '@anthropic-ai/sdk';
-import type { AnalysisResult } from '@/types/meat';
-import { analysisResultSchema } from '@/lib/schemas';
+﻿import type { AnalysisResult, MeatType } from '@/types/meat';
+import { analysisRawResultSchema } from '@/lib/schemas';
 import { buildAnalysisPrompt } from '@/lib/prompts';
 import { MEAT_CUTS, CUT_CRITERIA } from '@/lib/constants';
-import type { MeatType } from '@/types/meat';
+import { postProcessAnalysisResult } from '@/lib/post-process';
+import { durationMs, logEvent } from '@/lib/observability';
 
-/** Anthropic 클라이언트 (서버 사이드 전용) */
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const MODEL_TIMEOUT_MS = 45_000;
+const MAX_RETRIES = 1;
+const RETRY_DELAY_MS = 600;
+const MAX_OUTPUT_TOKENS = Number(process.env.GEMINI_MAX_OUTPUT_TOKENS ?? 3072);
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-/**
- * base64 데이터 URI에서 미디어 타입과 순수 base64 데이터를 분리
- */
+type SupportedMediaType = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
+
+interface GeminiPart {
+  text?: string;
+}
+
+interface GeminiCandidate {
+  content?: {
+    parts?: GeminiPart[];
+  };
+  finishReason?: string;
+}
+
+interface GeminiGenerateResponse {
+  candidates?: GeminiCandidate[];
+  promptFeedback?: {
+    blockReason?: string;
+  };
+  error?: {
+    message?: string;
+  };
+}
+
+interface GeminiTextResult {
+  text: string;
+  finishReason?: string;
+}
+
+const REQUIRED_JSON_SCHEMA = {
+  type: 'object',
+  properties: {
+    overallGrade: { type: 'string', enum: ['good', 'normal', 'bad'] },
+    overallScore: { type: 'number' },
+    details: {
+      type: 'object',
+      properties: {
+        color: {
+          type: 'object',
+          properties: {
+            score: { type: 'number' },
+            description: { type: 'string' },
+          },
+          required: ['score', 'description'],
+        },
+        marbling: {
+          type: 'object',
+          properties: {
+            score: { type: 'number' },
+            description: { type: 'string' },
+          },
+          required: ['score', 'description'],
+        },
+        surface: {
+          type: 'object',
+          properties: {
+            score: { type: 'number' },
+            description: { type: 'string' },
+          },
+          required: ['score', 'description'],
+        },
+        shape: {
+          type: 'object',
+          properties: {
+            score: { type: 'number' },
+            description: { type: 'string' },
+          },
+          required: ['score', 'description'],
+        },
+      },
+      required: ['color', 'marbling', 'surface', 'shape'],
+    },
+    warnings: { type: 'array', items: { type: 'string' } },
+    goodTraits: { type: 'array', items: { type: 'string' } },
+    limitations: { type: 'array', items: { type: 'string' } },
+    cutReference: {
+      type: 'object',
+      properties: {
+        goodDescription: { type: 'string' },
+        badDescription: { type: 'string' },
+      },
+      required: ['goodDescription', 'badDescription'],
+    },
+    analyzedAt: { type: 'string' },
+  },
+  required: [
+    'overallGrade',
+    'overallScore',
+    'details',
+    'warnings',
+    'goodTraits',
+    'limitations',
+    'cutReference',
+    'analyzedAt',
+  ],
+} as const;
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Model request timeout after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+  });
+}
+
+function isRetryableError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+
+  const message = error.message.toLowerCase();
+  return (
+    message.includes('timeout') ||
+    message.includes('rate limit') ||
+    message.includes('429') ||
+    message.includes('500') ||
+    message.includes('503') ||
+    message.includes('network') ||
+    message.includes('fetch failed') ||
+    message.includes('truncated')
+  );
+}
+
 function parseBase64Image(imageData: string): {
-  mediaType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
+  mediaType: SupportedMediaType;
   data: string;
 } {
-  // data:image/jpeg;base64,/9j/... 형식 처리
-  const match = imageData.match(
-    /^data:(image\/(jpeg|png|webp|gif));base64,(.+)$/
-  );
+  const match = imageData.match(/^data:(image\/(jpeg|png|webp|gif));base64,(.+)$/);
+
   if (match) {
     return {
-      mediaType: match[1] as
-        | 'image/jpeg'
-        | 'image/png'
-        | 'image/webp'
-        | 'image/gif',
+      mediaType: match[1] as SupportedMediaType,
       data: match[3],
     };
   }
 
-  // 순수 base64 데이터인 경우 JPEG로 가정
   return {
     mediaType: 'image/jpeg',
     data: imageData,
   };
 }
 
-/**
- * 고기 이미지를 Vision AI로 분석
- * @param imageBase64 - base64 인코딩된 이미지 (data URI 또는 순수 base64)
- * @param meatType - 고기 종류
- * @param cut - 부위 식별자
- * @returns 분석 결과
- */
+function tryParseJsonCandidate(text: string): unknown | null {
+  const candidates = new Set<string>();
+  const trimmed = text.trim();
+  if (trimmed) {
+    candidates.add(trimmed);
+  }
+
+  const blockMatches = [...trimmed.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)];
+  for (const match of blockMatches) {
+    if (match[1]) {
+      candidates.add(match[1].trim());
+    }
+  }
+
+  const firstObj = trimmed.indexOf('{');
+  const lastObj = trimmed.lastIndexOf('}');
+  if (firstObj >= 0 && lastObj > firstObj) {
+    candidates.add(trimmed.slice(firstObj, lastObj + 1).trim());
+  }
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // Try once with trailing comma cleanup.
+      const noTrailingCommas = candidate.replace(/,\s*([}\]])/g, '$1');
+      try {
+        return JSON.parse(noTrailingCommas);
+      } catch {
+        // Continue next candidate.
+      }
+    }
+  }
+
+  return null;
+}
+
+function extractJsonText(content: string): unknown {
+  const parsed = tryParseJsonCandidate(content);
+  if (parsed !== null) {
+    return parsed;
+  }
+
+  const snippet = content.replace(/\s+/g, ' ').slice(0, 280);
+  throw new Error(`AI response is not valid JSON. snippet="${snippet}"`);
+}
+
+function extractTextFromGeminiResponse(response: GeminiGenerateResponse): GeminiTextResult {
+  const firstCandidate = response.candidates?.[0];
+  const text = firstCandidate?.content?.parts
+    ?.map((part) => part.text ?? '')
+    .join('\n')
+    .trim();
+
+  if (text) {
+    return {
+      text,
+      finishReason: firstCandidate?.finishReason,
+    };
+  }
+
+  const reason =
+    response.promptFeedback?.blockReason ??
+    firstCandidate?.finishReason ??
+    response.error?.message ??
+    'unknown';
+
+  throw new Error(`Gemini returned no text content. reason=${reason}`);
+}
+
+async function requestGemini(
+  systemPrompt: string,
+  userPrompt: string,
+  mediaType: SupportedMediaType,
+  data: string
+): Promise<GeminiTextResult> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Missing GEMINI_API_KEY');
+  }
+
+  const url = `${GEMINI_API_BASE}/${encodeURIComponent(GEMINI_MODEL)}:generateContent`;
+
+  const body = {
+    system_instruction: {
+      parts: [{ text: systemPrompt }],
+    },
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { text: userPrompt },
+          {
+            inline_data: {
+              mime_type: mediaType,
+              data,
+            },
+          },
+        ],
+      },
+    ],
+    generationConfig: {
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
+      temperature: 0.2,
+      responseMimeType: 'application/json',
+      responseSchema: REQUIRED_JSON_SCHEMA,
+    },
+  };
+
+  const response = await withTimeout(
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify(body),
+    }),
+    MODEL_TIMEOUT_MS
+  );
+
+  const rawText = await response.text();
+
+  let parsed: GeminiGenerateResponse;
+  try {
+    parsed = JSON.parse(rawText) as GeminiGenerateResponse;
+  } catch {
+    throw new Error(`Gemini response is not valid JSON (status=${response.status}).`);
+  }
+
+  if (!response.ok) {
+    const message = parsed.error?.message ?? `Gemini API error ${response.status}`;
+    throw new Error(`${message} (status=${response.status})`);
+  }
+
+  const textResult = extractTextFromGeminiResponse(parsed);
+  if (textResult.finishReason?.toUpperCase() === 'MAX_TOKENS') {
+    throw new Error('Gemini output was truncated by max tokens.');
+  }
+
+  return textResult;
+}
+
+async function requestGeminiWithRetry(
+  systemPrompt: string,
+  userPrompt: string,
+  mediaType: SupportedMediaType,
+  data: string
+): Promise<string> {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    const attemptStart = Date.now();
+
+    try {
+      const result = await requestGemini(systemPrompt, userPrompt, mediaType, data);
+
+      logEvent({
+        name: 'ai.gemini.generate_content.succeeded',
+        data: {
+          attempt: attempt + 1,
+          durationMs: durationMs(attemptStart),
+          model: GEMINI_MODEL,
+          finishReason: result.finishReason ?? 'unknown',
+        },
+      });
+
+      return result.text;
+    } catch (error) {
+      lastError = error;
+
+      logEvent({
+        name: 'ai.gemini.generate_content.failed_attempt',
+        level: 'warn',
+        data: {
+          attempt: attempt + 1,
+          durationMs: durationMs(attemptStart),
+          model: GEMINI_MODEL,
+          message: error instanceof Error ? error.message : 'unknown',
+          retryable: isRetryableError(error),
+        },
+      });
+
+      const canRetry = isRetryableError(error) && attempt < MAX_RETRIES;
+      if (!canRetry) break;
+      await delay(RETRY_DELAY_MS * (attempt + 1));
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('Gemini request failed with unknown error.');
+}
+
+async function repairInvalidJson(rawOutput: string): Promise<unknown> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Missing GEMINI_API_KEY');
+  }
+
+  const url = `${GEMINI_API_BASE}/${encodeURIComponent(GEMINI_MODEL)}:generateContent`;
+  const repairPrompt = [
+    'Convert the following invalid/truncated output into valid JSON only.',
+    'Keep the same meaning. If a field is missing, fill with conservative defaults.',
+    'Return only JSON that matches the required schema.',
+    '',
+    rawOutput,
+  ].join('\n');
+
+  const body = {
+    contents: [
+      {
+        role: 'user',
+        parts: [{ text: repairPrompt }],
+      },
+    ],
+    generationConfig: {
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
+      temperature: 0,
+      responseMimeType: 'application/json',
+      responseSchema: REQUIRED_JSON_SCHEMA,
+    },
+  };
+
+  const response = await withTimeout(
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify(body),
+    }),
+    MODEL_TIMEOUT_MS
+  );
+
+  const rawText = await response.text();
+  let parsed: GeminiGenerateResponse;
+  try {
+    parsed = JSON.parse(rawText) as GeminiGenerateResponse;
+  } catch {
+    throw new Error('JSON repair response is not valid JSON.');
+  }
+
+  if (!response.ok) {
+    const message = parsed.error?.message ?? `Gemini repair API error ${response.status}`;
+    throw new Error(`${message} (status=${response.status})`);
+  }
+
+  const repairedText = extractTextFromGeminiResponse(parsed).text;
+  return extractJsonText(repairedText);
+}
+
 export async function analyzeImage(
   imageBase64: string,
   meatType: MeatType,
   cut: string
 ): Promise<AnalysisResult> {
-  // 부위 정보 및 기준 조회
+  const start = Date.now();
+
   const cutInfo = MEAT_CUTS[meatType][cut];
   const cutCriteria = CUT_CRITERIA[meatType][cut];
 
   if (!cutInfo || !cutCriteria) {
-    throw new Error(`유효하지 않은 부위입니다: ${meatType} - ${cut}`);
+    throw new Error(`Invalid cut: ${meatType} - ${cut}`);
   }
 
-  // 프롬프트 생성
+  logEvent({
+    name: 'ai.analysis.started',
+    data: {
+      provider: 'gemini',
+      model: GEMINI_MODEL,
+      meatType,
+      cut,
+      imageLength: imageBase64.length,
+    },
+  });
+
   const { systemPrompt, userPrompt } = buildAnalysisPrompt(
     meatType,
     cut,
@@ -69,61 +450,69 @@ export async function analyzeImage(
     cutCriteria
   );
 
-  // 이미지 데이터 파싱
   const { mediaType, data } = parseBase64Image(imageBase64);
 
-  // Claude API 호출
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2048,
-    system: systemPrompt,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'image',
-            source: {
-              type: 'base64',
-              media_type: mediaType,
-              data: data,
-            },
-          },
-          {
-            type: 'text',
-            text: userPrompt,
-          },
-        ],
-      },
-    ],
-  });
-
-  // 응답에서 텍스트 추출
-  const textContent = response.content.find((block) => block.type === 'text');
-  if (!textContent || textContent.type !== 'text') {
-    throw new Error('AI 응답에서 텍스트를 찾을 수 없습니다.');
-  }
-
-  // JSON 파싱 (응답이 ```json 블록으로 감싸져 있을 수 있음)
-  let jsonStr = textContent.text.trim();
-  const jsonBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (jsonBlockMatch) {
-    jsonStr = jsonBlockMatch[1].trim();
-  }
+  const responseText = await requestGeminiWithRetry(
+    systemPrompt,
+    userPrompt,
+    mediaType,
+    data
+  );
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(jsonStr);
-  } catch {
-    throw new Error('AI 응답을 JSON으로 파싱할 수 없습니다.');
+    parsed = extractJsonText(responseText);
+  } catch (parseError) {
+    logEvent({
+      name: 'ai.analysis.raw_json_parse_failed',
+      level: 'warn',
+      data: {
+        provider: 'gemini',
+        model: GEMINI_MODEL,
+        meatType,
+        cut,
+        message: parseError instanceof Error ? parseError.message : 'unknown',
+      },
+    });
+
+    parsed = await repairInvalidJson(responseText);
   }
 
-  // Zod 스키마로 유효성 검증
-  const validated = analysisResultSchema.safeParse(parsed);
-  if (!validated.success) {
-    console.error('AI 응답 검증 실패:', validated.error.issues);
-    throw new Error('AI 응답이 예상 형식과 일치하지 않습니다.');
+  const rawResult = analysisRawResultSchema.safeParse(parsed);
+
+  if (!rawResult.success) {
+    logEvent({
+      name: 'ai.analysis.raw_validation_failed',
+      level: 'error',
+      data: {
+        provider: 'gemini',
+        model: GEMINI_MODEL,
+        meatType,
+        cut,
+        issueCount: rawResult.error.issues.length,
+      },
+    });
+
+    console.error('Raw AI response validation failed:', rawResult.error.issues);
+    throw new Error('AI response does not match expected raw format.');
   }
 
-  return validated.data;
+  const finalResult = postProcessAnalysisResult(rawResult.data, {
+    meatType,
+    cut,
+  });
+
+  logEvent({
+    name: 'ai.analysis.succeeded',
+    data: {
+      provider: 'gemini',
+      model: GEMINI_MODEL,
+      meatType,
+      cut,
+      recommendation: finalResult.buyRecommendation,
+      durationMs: durationMs(start),
+    },
+  });
+
+  return finalResult;
 }

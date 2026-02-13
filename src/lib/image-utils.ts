@@ -7,10 +7,18 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 /** 리사이즈 최대 크기 */
-const MAX_DIMENSION = 1024;
+const MAX_DIMENSION = 960;
 
 /** JPEG 압축 품질 */
-const JPEG_QUALITY = 0.8;
+const DEFAULT_JPEG_QUALITY = 0.8;
+const LARGE_FILE_JPEG_QUALITY = 0.72;
+
+function getJpegQuality(fileSize: number): number {
+  // Larger source images are compressed a bit more to reduce upload size.
+  return fileSize > 5 * 1024 * 1024
+    ? LARGE_FILE_JPEG_QUALITY
+    : DEFAULT_JPEG_QUALITY;
+}
 
 /**
  * 이미지 파일 유효성 검증
@@ -86,7 +94,7 @@ export function resizeImage(file: File): Promise<string> {
         }
 
         ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+        const dataUrl = canvas.toDataURL('image/jpeg', getJpegQuality(file.size));
         resolve(dataUrl);
       } catch (err) {
         reject(
