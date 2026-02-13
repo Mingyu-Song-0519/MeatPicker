@@ -1,157 +1,146 @@
-﻿# MeatPicker - AI 怨좉린 ?덉쭏 遺꾩꽍 ?뱀궗?댄듃
+﻿# MeatPicker
 
-AI Vision 湲곗닠???쒖슜?섏뿬 ?뚭퀬湲곗? ?쇱?怨좉린???덉쭏??遺꾩꽍?섎뒗 ???좏뵆由ъ??댁뀡?낅땲?? ?ъ슜?먭? 怨좉린 ?ъ쭊??珥ъ쁺?섍굅???낅줈?쒗븯硫? AI媛 ?됱긽, 留덈툝留? ?쒕㈃ ?곹깭, ?뺥깭 洹좎씪???깆쓣 醫낇빀?곸쑝濡?遺꾩꽍?섏뿬 ?덉쭏 ?깃툒怨??곸꽭 ?먯닔瑜??쒓났?⑸땲??
+고기 사진(소고기/돼지고기)을 업로드하면 AI가 품질을 분석하고 구매 추천을 제공하는 웹 앱입니다.
 
----
+## 주요 기능
 
-## 二쇱슂 湲곕뒫
+- 사진 업로드/모바일 카메라 촬영
+- 고기 종류/부위 선택 후 AI 분석
+- 종합 점수/등급 + 세부 점수(색, 마블링, 표면, 형태)
+- 구매 추천(`buy`/`conditional`/`avoid`), 신뢰도, 판단 근거 제공
+- 경고 징후(변색, PSE 의심, 표면 이상, 탄력 저하) 안내
 
-- **?ъ쭊 ?낅젰**: 媛ㅻ윭由ъ뿉???낅줈???먮뒗 移대찓?쇰줈 吏곸젒 珥ъ쁺
-- **怨좉린 醫낅쪟 ?좏깮**: ?뚭퀬湲?6媛?遺?? ?먮뒗 ?쇱?怨좉린(5媛?遺?? ?좏깮
-- **AI ?덉쭏 遺꾩꽍**: Vision AI媛 ?됱긽, 留덈툝留? ?쒕㈃ ?곹깭, ?뺥깭/洹좎씪?깆쓣 遺꾩꽍
-- **遺꾩꽍 寃곌낵 ?쒓났**: 醫낇빀 ?깃툒(醫뗭쓬/蹂댄넻/?섏겏), 醫낇빀 ?먯닔(0-100), 遺?꾨퀎 ?곸꽭 ?먯닔, 寃쎄퀬 ?ы빆
-- **紐⑤컮??理쒖쟻??*: 紐⑤컮???곗꽑 諛섏쓳???붿옄??- **蹂댁븞**: ?쒕쾭 ?ъ씠??API ??愿由?- **?대?吏 理쒖쟻??*: ?낅줈?????대?吏 由ъ궗?댁쫰/?뺤텞 (理쒕? 1MB)
+## 기술 스택
 
-### 吏??遺??
-| ?뚭퀬湲?| ?쇱?怨좉린 |
-|--------|----------|
-| ?덉떖 | ?쇨껸??|
-| ?깆떖 | 紐⑹궡 |
-| 梨꾨걹 | ??젙??|
-| 媛덈퉬 | ?깆떖 |
-| ?ы깭 | ?욌떎由?|
-| ?곕몦 | |
+- Next.js 16 (App Router)
+- TypeScript
+- Tailwind CSS
+- Gemini API (Google Generative Language)
+- Zod
+- Vitest
 
----
+## 사전 준비
 
-## 湲곗닠 ?ㅽ깮
+- Node.js 20+
+- Gemini API Key
 
-| 遺꾨쪟 | 湲곗닠 |
-|------|------|
-| ?꾨젅?꾩썙??| Next.js 16.1.6 (App Router) |
-| ?몄뼱 | TypeScript 5.x |
-| UI ?쇱씠釉뚮윭由?| React 19.2.3 |
-| ?ㅽ??쇰쭅 | Tailwind CSS 4.x |
-| AI | Gemini API (Google Generative Language) |
-| ?좏슚??寃利?| Zod 4.3.6 |
-| 諛고룷 | Vercel |
-
----
-
-## ?쒖옉?섍린
-
-### ?ъ쟾 ?붽뎄?ы빆
-
-- Node.js 20 ?댁긽
-- npm ?먮뒗 yarn
-- Gemini API ??([console.Gemini.com](https://console.Gemini.com)?먯꽌 諛쒓툒)
-
-### ?ㅼ튂
+## 설치 및 실행
 
 ```bash
-git clone https://github.com/your-username/MeatPicker.git
+git clone https://github.com/Mingyu-Song-0519/MeatPicker.git
 cd MeatPicker
 npm install
 ```
 
-### ?섍꼍 蹂???ㅼ젙
+프로젝트 루트에 `.env.local` 파일을 만들고 아래 값을 설정하세요.
 
-?꾨줈?앺듃 猷⑦듃??`.env.local` ?뚯씪???앹꽦?섍퀬 ?ㅼ쓬 ?댁슜??異붽??⑸땲??
-
+```env
+GEMINI_API_KEY=your_real_api_key
+GEMINI_MODEL=gemini-2.5-flash
+# 선택값 (기본 3072)
+GEMINI_MAX_OUTPUT_TOKENS=3072
 ```
-GEMINI_API_KEY=your_api_key_here
-```
 
-`GEMINI_API_KEY`???쒕쾭 ?ъ씠?쒖뿉?쒕쭔 ?ъ슜?섎ŉ ?대씪?댁뼵?몄뿉 ?몄텧?섏? ?딆뒿?덈떎.
-
-### 媛쒕컻 ?쒕쾭 ?ㅽ뻾
+개발 서버 실행:
 
 ```bash
 npm run dev
 ```
 
-釉뚮씪?곗??먯꽌 [http://localhost:3000](http://localhost:3000)???댁뼱 ?뺤씤?⑸땲??
+브라우저에서 `http://localhost:3000` 접속.
 
-### 鍮뚮뱶 諛?諛고룷
+## 품질 검증 명령
 
 ```bash
+npm run test
+npm run lint
 npm run build
-npm run start
 ```
-
----
-
-## ?꾨줈?앺듃 援ъ“
-
-```
-src/
-  app/
-    layout.tsx            - 猷⑦듃 ?덉씠?꾩썐 (?쒓뎅?? Geist ?고듃)
-    page.tsx              - 硫붿씤 ?섏씠吏 (?낅줈??-> ?좏깮 -> 遺꾩꽍 -> 寃곌낵)
-    globals.css           - ?꾩뿭 ?ㅽ???    api/
-      analyze/route.ts    - POST /api/analyze ?붾뱶?ъ씤??  components/
-    ImageUploader.tsx     - ?대?吏 ?낅줈??諛?移대찓??珥ъ쁺
-    MeatTypeSelector.tsx  - ?뚭퀬湲??쇱?怨좉린 ?좏깮
-    CutSelector.tsx       - 遺???좏깮
-    AnalyzeButton.tsx     - 遺꾩꽍 ?ㅽ뻾 踰꾪듉
-    ScoreCard.tsx         - 醫낇빀 ?깃툒 諛??먯닔 ?쒖떆
-    DetailAnalysis.tsx    - ?곸꽭 ?먯닔 遺꾩꽍
-    WarningBanner.tsx     - 寃쎄퀬 諛곕꼫
-    CutComparison.tsx     - 醫뗭?/?섏걶 怨좉린 鍮꾧탳 李멸퀬
-  lib/
-    vision-ai.ts          - Gemini Vision API ?대씪?댁뼵??    image-utils.ts        - ?대?吏 由ъ궗?댁쫰/?뺤텞 ?좏떥由ы떚
-    prompts.ts            - AI ?꾨＼?꾪듃 ?쒗뵆由?    constants.ts          - 遺???곗씠??諛?遺꾩꽍 湲곗?
-    schemas.ts            - Zod ?좏슚??寃利??ㅽ궎留?  types/
-    meat.ts               - ?듭떖 ????뺤쓽
-    api.ts                - API ?붿껌/?묐떟 ???```
-
----
 
 ## API
 
-### POST /api/analyze
+### `POST /api/analyze`
 
-怨좉린 ?대?吏瑜?遺꾩꽍?섏뿬 ?덉쭏 寃곌낵瑜?諛섑솚?⑸땲??
-
-**?붿껌 蹂몃Ц**
+요청 예시:
 
 ```json
 {
-  "image": "base64 ?몄퐫?⑸맂 ?대?吏",
-  "meatType": "beef" | "pork",
-  "cut": "遺?꾨챸"
+  "image": "data:image/jpeg;base64,...",
+  "meatType": "beef",
+  "cut": "ribeye"
 }
 ```
 
-**?묐떟**
+응답 예시:
 
 ```json
 {
-  "overallGrade": "good" | "normal" | "bad",
-  "overallScore": 85,
+  "overallGrade": "normal",
+  "overallScore": 68,
   "details": {
-    "color": { "score": 90, "description": "..." },
-    "marbling": { "score": 80, "description": "..." },
-    "surface": { "score": 85, "description": "..." },
-    "shape": { "score": 88, "description": "..." }
+    "color": { "score": 78, "description": "..." },
+    "marbling": { "score": 62, "description": "..." },
+    "surface": { "score": 70, "description": "..." },
+    "shape": { "score": 65, "description": "..." }
   },
-  "warnings": ["寃쎄퀬 硫붿떆吏"],
-  "goodTraits": ["湲띿젙???뱀꽦"],
-  "limitations": ["遺꾩꽍 ?쒓퀎 ?ы빆"],
-  "cutReference": { "good": "...", "bad": "..." }
+  "warnings": ["..."],
+  "goodTraits": ["..."],
+  "limitations": ["..."],
+  "cutReference": {
+    "goodDescription": "...",
+    "badDescription": "..."
+  },
+  "buyRecommendation": "conditional",
+  "confidence": 0.73,
+  "reasons": ["..."],
+  "qualityFlags": {
+    "discoloration": false,
+    "pseRisk": false,
+    "surfaceRisk": false,
+    "elasticityRisk": true
+  },
+  "analyzedAt": "2026-02-13T11:45:00.000Z"
 }
 ```
 
----
+## 프로젝트 구조
 
-## 硫댁콉 議고빆
+```text
+src/
+  app/
+    api/analyze/route.ts
+    page.tsx
+  components/
+    ImageUploader.tsx
+    MeatTypeSelector.tsx
+    CutSelector.tsx
+    AnalyzeButton.tsx
+    RecommendationPanel.tsx
+    ScoreCard.tsx
+    DetailAnalysis.tsx
+    WarningBanner.tsx
+    CutComparison.tsx
+  lib/
+    vision-ai.ts
+    prompts.ts
+    prompt-rules.ts
+    constants.ts
+    schemas.ts
+    post-process.ts
+    rate-limit.ts
+    image-utils.ts
+    observability.ts
+    __tests__/
+  types/
+    meat.ts
+    api.ts
+```
 
-???쒕퉬?ㅼ쓽 AI 遺꾩꽍 寃곌낵??李멸퀬 ?⑸룄濡쒕쭔 ?쒓났?⑸땲?? ?ㅼ젣 怨좉린 ?덉쭏? ?ъ쭊留뚯쑝濡??꾨꼍?섍쾶 ?먮떒?????놁쑝硫? 議곕챸, 移대찓???덉쭏, 珥ъ쁺 媛곷룄 ???몃? ?붿씤???섑빐 遺꾩꽍 寃곌낵媛 ?щ씪吏????덉뒿?덈떎. 理쒖쥌 援щℓ 寃곗젙? ?꾨Ц媛???섍껄?대굹 吏곸젒?곸씤 ?뺤씤???듯빐 ?대젮二쇱떆湲?諛붾엻?덈떎.
+## 주의
 
----
+- 본 결과는 사진 기반 AI 추정이며 최종 구매 판단을 대체하지 않습니다.
+- 냄새/촉감/내부 상태/보관 이력은 사진만으로 확정할 수 없습니다.
 
-## ?쇱씠?좎뒪
+## 라이선스
 
-MIT License
-
-
+MIT
